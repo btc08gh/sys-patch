@@ -13,6 +13,7 @@ constexpr u16 REGEX_SKIP = 0x100;
 
 u32 FW_VERSION{}; // set on startup
 u32 AMS_VERSION{}; // set on startup
+bool IS_EMUNAND{}; // set on startup
 
 struct DebugEventInfo {
     u32 event_type;
@@ -196,6 +197,25 @@ constexpr PatchEntry patches[] = {
     { "es", 0x0100000000000033, es_patterns, MAKEHOSVERSION(2,0,0) },
 };
 
+struct EmummcPaths {
+    char unk[0x80];
+    char nintendo[0x80];
+};
+
+void smcAmsGetEmunandConfig(EmummcPaths* out_paths) {
+    SecmonArgs args{};
+    args.X[0] = 0xF0000404; /* smcAmsGetEmunandConfig */
+    args.X[1] = 0; /* EXO_EMUMMC_MMC_NAND*/
+    args.X[2] = (u64)out_paths; /* out path */
+    svcCallSecureMonitor(&args);
+}
+
+bool is_emunand() {
+    EmummcPaths paths{};
+    smcAmsGetEmunandConfig(&paths);
+    return (paths.unk[0] != '\0') || (paths.nintendo[0] != '\0');
+}
+
 auto patcher(Handle handle, std::span<const u8> data, u64 addr, std::span<const Patterns> patterns) -> bool {
     for (auto& p : patterns) {
         // skip if version isn't valid
@@ -318,6 +338,9 @@ auto apply_patch(const PatchEntry& patch) -> bool {
 } // namespace
 
 int main(int argc, char* argv[]) {
+    // check if we are emunand
+    IS_EMUNAND = is_emunand();
+
     for (auto& patch : patches) {
         apply_patch(patch);
     }
