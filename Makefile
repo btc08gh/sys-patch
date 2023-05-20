@@ -183,7 +183,7 @@ endif
 dist: all
 	@echo making dist ...
 
-	@rm sys-patch.zip
+	@rm -f sys-patch.zip
 	@cd out; zip -r ../sys-patch.zip ./*; cd ../
 #---------------------------------------------------------------------------------
 else
