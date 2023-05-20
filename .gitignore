@@ -1,0 +1,12 @@
+.vscode
+build
+Firmware
+420000000000000B
+*.txt
+*.elf
+*.npdm
+*.nso
+*.nsp
+*.zip
+out
+ignoreme
