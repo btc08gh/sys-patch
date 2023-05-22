@@ -39,7 +39,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	sys-patch
 BUILD		:=	build
-SOURCES		:=	src
+SOURCES		:=	src src/minIni
 DATA		:=	data
 INCLUDES	:=	include
 #ROMFS	:=	romfs

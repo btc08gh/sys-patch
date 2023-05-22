@@ -83,3 +83,4 @@ software is built on the shoulders of giants. this tool wouldn't be possible wth
 - SciresM (Atmosphere, hactool, etc)
 - Switchbrew (libnx, switch-examples)
 - DevkitPro (toolchain)
+- [minIni](https://github.com/compuphase/minIni)

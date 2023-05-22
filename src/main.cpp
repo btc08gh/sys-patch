@@ -3,6 +3,7 @@
 #include <algorithm> // for min
 #include <bit> // for byteswap
 #include <switch.h>
+#include "minIni/minIni.h"
 
 namespace {
 
@@ -13,7 +14,6 @@ constexpr u16 REGEX_SKIP = 0x100;
 
 u32 FW_VERSION{}; // set on startup
 u32 AMS_VERSION{}; // set on startup
-bool IS_EMUNAND{}; // set on startup
 
 struct DebugEventInfo {
     u32 event_type;
@@ -210,7 +210,7 @@ void smcAmsGetEmunandConfig(EmummcPaths* out_paths) {
     svcCallSecureMonitor(&args);
 }
 
-bool is_emunand() {
+auto is_emummc() -> bool {
     EmummcPaths paths{};
     smcAmsGetEmunandConfig(&paths);
     return (paths.unk[0] != '\0') || (paths.nintendo[0] != '\0');
@@ -335,11 +335,50 @@ auto apply_patch(const PatchEntry& patch) -> bool {
     return false;
 }
 
+// creates a directory, non-recursive!
+auto create_dir(const char* path) -> bool {
+    Result rc{};
+    FsFileSystem fs{};
+
+    if (R_FAILED(fsOpenSdCardFileSystem(&fs))) {
+        return false;
+    }
+
+    rc = fsFsCreateDirectory(&fs, path);
+    fsFsClose(&fs);
+    return R_SUCCEEDED(rc);
+}
+
+// same as ini_get but writes out the default value instead
+auto ini_load_or_write_default(const char* section, const char* key, long _default, const char* path) -> long {
+    if (!ini_haskey(section, key, path)) {
+        ini_putl(section, key, _default, path);
+        return _default;
+    } else {
+        return ini_getl(section, key, _default, path);
+    }
+}
+
 } // namespace
 
 int main(int argc, char* argv[]) {
-    // check if we are emunand
-    IS_EMUNAND = is_emunand();
+    create_dir("/config/");
+    create_dir("/config/sys-patch/");
+
+    const auto ini_path = "/config/sys-patch/config.ini";
+    const auto patch_sysmmc = ini_load_or_write_default("options", "patch_sysmmc", 1, ini_path);
+    const auto patch_emummc = ini_load_or_write_default("options", "patch_emummc", 1, ini_path);
+    const auto emummc = is_emummc();
+
+    // check if we should patch sysmmc
+    if (!patch_sysmmc && !emummc) {
+        return 0;
+    }
+
+    // check if we should patch emummc
+    if (!patch_emummc && emummc) {
+        return 0;
+    }
 
     for (auto& patch : patches) {
         apply_patch(patch);
@@ -397,6 +436,9 @@ void __appInit(void) {
         splExit();
     }
 
+    if (R_FAILED(rc = fsInitialize()))
+        fatalThrow(rc);
+
     // Add other services you want to use here.
     if (R_FAILED(rc = pmdmntInitialize()))
         fatalThrow(rc);
@@ -408,6 +450,7 @@ void __appInit(void) {
 // Service deinitialization.
 void __appExit(void) {
     pmdmntExit();
+    fsExit();
 }
 
 } // extern "C"
