@@ -4,6 +4,20 @@ A script-like system module that patches fs, es and ldr on boot.
 
 ---
 
+## Config
+
+sys-patch features a *very* simple config, only 2 options so far and they both do the same thing :p
+
+this config file can be found in `/config/sys-patch/config.ini`, if the file does not exist, the file will be created when sys-patch is run.
+
+```ini
+[options]
+patch_sysmmc=1 ; 1=(default) patch sysmmc, 0=don't patch sysmmc
+patch_emummc=1 ; 1=(default) patch emummc, 0=don't patch emummc
+```
+
+---
+
 ## Building
 
 ### prerequisites
@@ -62,7 +76,6 @@ Also, if you forget to update your patches when you update fw / atmosphere, this
 This repo is mainly a proof of concept. I would love for someone to build upon this, make it into something bigger / better.
 
 here are a few ideas that i have:
-- option to only apply patches when in emunand
 - option to load new patterns from file
 - make this into a service / overlay
 - make homebrew frontend that can update this sysmod, apply patches, all without having to reboot
