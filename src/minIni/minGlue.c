@@ -3,17 +3,21 @@
 
 static bool ini_open(const char* filename, struct NxFile* nxfile, u32 mode) {
     Result rc = {0};
+    char filename_buf[FS_MAX_PATH] = {0};
+
     if (R_FAILED(rc = fsOpenSdCardFileSystem(&nxfile->system))) {
         return false;
     }
 
-    if (R_FAILED(rc = fsFsOpenFile(&nxfile->system, filename, mode, &nxfile->file))) {
+    strcpy(filename_buf, filename);
+
+    if (R_FAILED(rc = fsFsOpenFile(&nxfile->system, filename_buf, mode, &nxfile->file))) {
         if (mode & FsOpenMode_Write) {
-            if (R_FAILED(rc = fsFsCreateFile(&nxfile->system, filename, 0, 0))) {
+            if (R_FAILED(rc = fsFsCreateFile(&nxfile->system, filename_buf, 0, 0))) {
                 fsFsClose(&nxfile->system);
                 return false;
             } else {
-                if (R_FAILED(rc = fsFsOpenFile(&nxfile->system, filename, mode, &nxfile->file))) {
+                if (R_FAILED(rc = fsFsOpenFile(&nxfile->system, filename_buf, mode, &nxfile->file))) {
                     fsFsClose(&nxfile->system);
                     return false;
                 }
@@ -94,12 +98,16 @@ bool ini_seek(struct NxFile* nxfile, s64* pos) {
 bool ini_rename(const char* src, const char* dst) {
     Result rc = {0};
     FsFileSystem fs = {0};
+    char src_buf[FS_MAX_PATH] = {0};
+    char dst_buf[FS_MAX_PATH] = {0};
 
     if (R_FAILED(rc = fsOpenSdCardFileSystem(&fs))) {
         return false;
     }
 
-    rc = fsFsRenameFile(&fs, src, dst);
+    strcpy(src_buf, src);
+    strcpy(dst_buf, dst);
+    rc = fsFsRenameFile(&fs, src_buf, dst_buf);
     fsFsClose(&fs);
     return R_SUCCEEDED(rc);
 }
@@ -107,12 +115,14 @@ bool ini_rename(const char* src, const char* dst) {
 bool ini_remove(const char* filename) {
     Result rc = {0};
     FsFileSystem fs = {0};
+    char filename_buf[FS_MAX_PATH] = {0};
 
     if (R_FAILED(rc = fsOpenSdCardFileSystem(&fs))) {
         return false;
     }
 
-    rc = fsFsDeleteFile(&fs, filename);
+    strcpy(filename_buf, filename);
+    rc = fsFsDeleteFile(&fs, filename_buf);
     fsFsClose(&fs);
     return R_SUCCEEDED(rc);
 }

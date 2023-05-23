@@ -339,12 +339,14 @@ auto apply_patch(const PatchEntry& patch) -> bool {
 auto create_dir(const char* path) -> bool {
     Result rc{};
     FsFileSystem fs{};
+    char path_buf[FS_MAX_PATH]{};
 
     if (R_FAILED(fsOpenSdCardFileSystem(&fs))) {
         return false;
     }
 
-    rc = fsFsCreateDirectory(&fs, path);
+    strcpy(path_buf, path);
+    rc = fsFsCreateDirectory(&fs, path_buf);
     fsFsClose(&fs);
     return R_SUCCEEDED(rc);
 }

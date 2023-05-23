@@ -35,7 +35,7 @@ ldr on the other hand needs new patches after every new atmosphere release. this
 
 it uses a collection of patterns to find the piece of code to patch. alternatively, it could just use offsets, however this would mean this tool would have to be updated after every new fw update, that's not ideal.
 
-the patches are applied at boot, then, the sysmod stops running. the memory footpint of the sysmod is very very small, only using 16kib in total. the size of the binary itself is only 14kib! this doesnt really mean much, but im pretty proud of it :)
+the patches are applied at boot, then, the sysmod stops running. the memory footpint of the sysmod is very very small, only using 16kib in total. the size of the binary itself is only ~50kib! this doesnt really mean much, but im pretty proud of it :)
 
 ---
 
@@ -49,7 +49,7 @@ No, i would personally recommend continuing to use sigpatches. Reason being is t
 
 Yes, in 2 niche cases.
 
-1. A new ldr patch needs to be created after every atosphere update. Sometimes, a new silent atmosphere update is released. This tool will always patch ldr without having to update patches.
+1. A new ldr patch needs to be created after every atmosphere update. Sometimes, a new silent atmosphere update is released. This tool will always patch ldr without having to update patches.
 
 2. Building atmosphere from src will require you to generate a new ldr patch for that custom built atmosphere. This is easy enough due to the public scripts / tools that exist out there, however this will always be able to
 

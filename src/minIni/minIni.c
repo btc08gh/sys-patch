@@ -570,7 +570,7 @@ static void ini_tempname(TCHAR *dest, const TCHAR *source, int maxlength)
   ini_strncpy(dest, source, maxlength, QUOTE_NONE);
   p = _tcschr(dest, '\0');
   assert(p != NULL);
-  *(p - 1) = '2';
+  *(p - 1) = '~';
 }
 
 static enum quote_option check_enquote(const TCHAR *Value)
@@ -683,10 +683,7 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
   INI_FILEPOS mark;
   INI_FILEPOS head, tail;
   TCHAR *sp, *ep;
-  // TJ: not making this static breaks everything.
-  // this only happens as sysmod.
-  // likley some UB stuff is going on here, will investigate soon.
-  static TCHAR LocalBuffer[INI_BUFFERSIZE];
+  TCHAR LocalBuffer[INI_BUFFERSIZE];
   int len, match, flag, cachelen;
 
   assert(Filename != NULL);
@@ -757,7 +754,6 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
   ini_tempname(LocalBuffer, Filename, INI_BUFFERSIZE);
   if (!ini_openwrite(LocalBuffer, &wfp))
     return 0;
-
   /* In the case of (advisory) file locks, ini_openwrite() may have been blocked
    * on the open, and after the block is lifted, the original file may have been
    * renamed, which is why the original file was closed and is now reopened */
