@@ -39,7 +39,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 APP_TITLE	:=	sys-patch
 APP_AUTHOR	:=	TotalJustice
-APP_VERSION :=	1.2.0
+APP_VERSION :=	$(VERSION_DIRTY)
 
 TARGET		:=	sys-patch-overlay
 BUILD		:=	build
@@ -55,7 +55,7 @@ NO_ICON		:=  1
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
-			$(ARCH) $(DEFINES)
+			$(ARCH) $(DEFINES) $(CUSTOM_DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 

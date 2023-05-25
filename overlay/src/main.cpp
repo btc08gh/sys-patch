@@ -1,4 +1,5 @@
 #define TESLA_INIT_IMPL // If you have more than one file using the tesla header, only define this in the main one
+#define STBTT_STATIC
 #include <tesla.hpp>    // The Tesla Header
 #include <string_view>
 #include "minIni/minIni.h"
@@ -76,14 +77,16 @@ public:
         config_patch_sysmmc.load_value_from_ini();
         config_patch_emummc.load_value_from_ini();
         config_logging.load_value_from_ini();
+        config_version_skip.load_value_from_ini();
 
-        auto frame = new tsl::elm::OverlayFrame("sys-patch", "v1.2.0");
+        auto frame = new tsl::elm::OverlayFrame("sys-patch", VERSION_WITH_HASH);
         auto list = new tsl::elm::List();
 
         list->addItem(new tsl::elm::CategoryHeader("Options"));
-        list->addItem(config_patch_sysmmc.create_list_item("Patch SysMMC"));
-        list->addItem(config_patch_emummc.create_list_item("Patch EmuMMC"));
+        list->addItem(config_patch_sysmmc.create_list_item("Patch sysMMC"));
+        list->addItem(config_patch_emummc.create_list_item("Patch emuMMC"));
         list->addItem(config_logging.create_list_item("Logging"));
+        list->addItem(config_version_skip.create_list_item("Version skip"));
 
         if (does_file_exist(LOG_PATH)) {
             struct CallbackUser {
@@ -93,7 +96,9 @@ public:
 
             ini_browse([](const mTCHAR *Section, const mTCHAR *Key, const mTCHAR *Value, void *UserData){
                 auto user = (CallbackUser*)UserData;
-                if (!std::strcmp("Skipped", Value)) {
+                std::string_view value{Value};
+
+                if (value == "Skipped") {
                     return 1;
                 }
 
@@ -108,7 +113,6 @@ public:
                 constexpr tsl::Color colour_unpatched{F(250), F(90), F(58), F(255)};
                 #undef F
 
-                std::string_view value{Value};
                 if (value.starts_with("Patched")) {
                     if (value.ends_with("(sys-patch)")) {
                         user->list->addItem(new tsl::elm::ListItem(Key, "Patched", colour_syspatch));
@@ -117,6 +121,10 @@ public:
                     }
                 } else if (value.starts_with("Unpatched")) {
                     user->list->addItem(new tsl::elm::ListItem(Key, Value, colour_unpatched));
+                } else if (user->last_section == "stats") {
+                    user->list->addItem(new tsl::elm::ListItem(Key, Value, tsl::style::color::ColorDescription));
+                } else {
+                    user->list->addItem(new tsl::elm::ListItem(Key, Value, tsl::style::color::ColorText));
                 }
 
                 return 1;
@@ -132,6 +140,7 @@ public:
     ConfigEntry config_patch_sysmmc{"options", "patch_sysmmc", true};
     ConfigEntry config_patch_emummc{"options", "patch_emummc", true};
     ConfigEntry config_logging{"options", "patch_logging", true};
+    ConfigEntry config_version_skip{"options", "version_skip", true};
 };
 
 // libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys

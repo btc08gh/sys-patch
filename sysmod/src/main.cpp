@@ -1,20 +1,24 @@
 #include <cstring>
 #include <span>
-#include <algorithm> // for min
-#include <bit> // for byteswap
+#include <algorithm> // for std::min
+#include <bit> // for std::byteswap
 #include <utility> // std::unreachable
 #include <switch.h>
 #include "minIni/minIni.h"
 
 namespace {
 
-constexpr u64 INNER_HEAP_SIZE = 0x4000; // Size of the inner heap (adjust as necessary).
-constexpr u64 READ_BUFFER_SIZE = 0x1000; // size of buffer which memory is read into
+constexpr u64 INNER_HEAP_SIZE = 0x1000; // Size of the inner heap (adjust as necessary).
+constexpr u64 READ_BUFFER_SIZE = 0x1000; // size of static buffer which memory is read into
 constexpr u32 FW_VER_ANY = 0x0;
 constexpr u16 REGEX_SKIP = 0x100;
 
 u32 FW_VERSION{}; // set on startup
 u32 AMS_VERSION{}; // set on startup
+u32 AMS_TARGET_VERSION{}; // set on startup
+u8 AMS_KEYGEN{}; // set on startup
+u64 AMS_HASH{}; // set on startup
+bool VERSION_SKIP{}; // set on startup
 
 struct DebugEventInfo {
     u32 event_type;
@@ -201,12 +205,12 @@ constexpr auto mov0_applied(u32 inst) -> bool {
 }
 
 constinit Patterns fs_patterns[] = {
-    { "noacidsigchk1", "0xC8FE4739", -24, 0, bl_cond, ret0_patch, ret0_applied },
-    { "noacidsigchk2", "0x0210911F000072", -5, 0, bl_cond, ret0_patch, ret0_applied },
-    { "noncasigchk_old", "0x1E42B9", -5, 0, tbz_cond, nop_patch, nop_applied },
-    { "noncasigchk_new", "0x3E4479", -5, 0, tbz_cond, nop_patch, nop_applied },
-    { "nocntchk_old", "0x081C00121F05007181000054", -4, 0, bl_cond, ret0_patch, ret0_applied },
-    { "nocntchk_new", "0x081C00121F05007141010054", -4, 0, bl_cond, ret0_patch, ret0_applied },
+    { "noacidsigchk1", "0xC8FE4739", -24, 0, bl_cond, ret0_patch, ret0_applied, FW_VER_ANY, MAKEHOSVERSION(9,2,0) },
+    { "noacidsigchk2", "0x0210911F000072", -5, 0, bl_cond, ret0_patch, ret0_applied, FW_VER_ANY, MAKEHOSVERSION(9,2,0) },
+    { "noncasigchk_old", "0x1E42B9", -5, 0, tbz_cond, nop_patch, nop_applied, MAKEHOSVERSION(10,0,0), MAKEHOSVERSION(14,2,1) },
+    { "noncasigchk_new", "0x3E4479", -5, 0, tbz_cond, nop_patch, nop_applied, MAKEHOSVERSION(15,0,0) },
+    { "nocntchk_old", "0x081C00121F05007181000054", -4, 0, bl_cond, ret0_patch, ret0_applied, MAKEHOSVERSION(10,0,0), MAKEHOSVERSION(14,2,1) },
+    { "nocntchk_new", "0x081C00121F05007141010054", -4, 0, bl_cond, ret0_patch, ret0_applied, MAKEHOSVERSION(15,0,0) },
 };
 
 constinit Patterns ldr_patterns[] = {
@@ -251,23 +255,20 @@ auto is_emummc() -> bool {
     return (paths.unk[0] != '\0') || (paths.nintendo[0] != '\0');
 }
 
-auto patcher(Handle handle, std::span<const u8> data, u64 addr, std::span<Patterns> patterns) -> bool {
+void patcher(Handle handle, std::span<const u8> data, u64 addr, std::span<Patterns> patterns) {
     for (auto& p : patterns) {
         // skip if version isn't valid
-        if ((p.min_fw_ver && p.min_fw_ver > FW_VERSION) ||
+        if (VERSION_SKIP &&
+            ((p.min_fw_ver && p.min_fw_ver > FW_VERSION) ||
             (p.max_fw_ver && p.max_fw_ver < FW_VERSION) ||
             (p.min_ams_ver && p.min_ams_ver > AMS_VERSION) ||
-            (p.max_ams_ver && p.max_ams_ver < AMS_VERSION)) {
+            (p.max_ams_ver && p.max_ams_ver < AMS_VERSION))) {
             p.result = PatchedResult::SKIPPED;
             continue;
         }
 
         // skip if already patched
         if (p.result == PatchedResult::PATCHED_FILE || p.result == PatchedResult::PATCHED_SYSPATCH) {
-            continue;
-        }
-
-        if (p.byte_pattern.size >= data.size()) {
             continue;
         }
 
@@ -314,8 +315,6 @@ auto patcher(Handle handle, std::span<const u8> data, u64 addr, std::span<Patter
             }
         }
     }
-
-    return false;
 }
 
 auto apply_patch(PatchEntry& patch) -> bool {
@@ -327,8 +326,9 @@ auto apply_patch(PatchEntry& patch) -> bool {
     static u8 buffer[READ_BUFFER_SIZE];
 
     // skip if version isn't valid
-    if ((patch.min_fw_ver && patch.min_fw_ver > FW_VERSION) ||
-        (patch.max_fw_ver && patch.max_fw_ver < FW_VERSION)) {
+    if (VERSION_SKIP &&
+        ((patch.min_fw_ver && patch.min_fw_ver > FW_VERSION) ||
+        (patch.max_fw_ver && patch.max_fw_ver < FW_VERSION))) {
         for (auto& p : patch.patterns) {
             p.result = PatchedResult::SKIPPED;
         }
@@ -422,6 +422,81 @@ auto patch_result_to_str(PatchedResult result) -> const char* {
     std::unreachable();
 }
 
+void num_2_str(char*& s, u16 num) {
+    u16 max_v = 1000;
+    if (num > 9) {
+        while (max_v >= 10) {
+            if (num >= max_v) {
+                while (max_v != 1) {
+                    *s++ = '0' + (num / max_v);
+                    num -= (num / max_v) * max_v;
+                    max_v /= 10;
+                }
+            } else {
+                max_v /= 10;
+            }
+        }
+    }
+    *s++ = '0' + (num); // always add 0 or 1's
+}
+
+void ms_2_str(char* s, u32 num) {
+    u32 max_v = 100;
+    *s++ = '0' + (num / 1000); // add seconds
+    num -= (num / 1000) * 1000;
+    *s++ = '.';
+
+    while (max_v >= 10) {
+        if (num >= max_v) {
+            while (max_v != 1) {
+                *s++ = '0' + (num / max_v);
+                num -= (num / max_v) * max_v;
+                max_v /= 10;
+            }
+        }
+        else {
+           *s++ = '0'; // append 0
+           max_v /= 10;
+        }
+    }
+    *s++ = '0' + (num); // always add 0 or 1's
+    *s++ = 's'; // in seconds
+}
+
+// eg, 852481 -> 13.2.1
+void version_to_str(char* s, u32 ver) {
+    for (int i = 0; i < 3; i++) {
+        num_2_str(s, (ver >> 16) & 0xFF);
+        if (i != 2) {
+            *s++ = '.';
+        }
+        ver <<= 8;
+    }
+}
+
+// eg, 0xAF66FF99 -> AF66FF99
+void hash_to_str(char* s, u32 hash) {
+    for (int i = 0; i < 4; i++) {
+        const auto num = (hash >> 24) & 0xFF;
+        const auto top = (num >> 4) & 0xF;
+        const auto bottom = (num >> 0) & 0xF;
+
+        constexpr auto a = [](u8 nib) -> char {
+            if (nib >= 0 && nib <= 9) { return '0' + nib; }
+            return 'a' + nib - 10;
+        };
+
+        *s++ = a(top);
+        *s++ = a(bottom);
+
+        hash <<= 8;
+    }
+}
+
+void keygen_to_str(char* s, u8 keygen) {
+    num_2_str(s, keygen);
+}
+
 } // namespace
 
 int main(int argc, char* argv[]) {
@@ -435,6 +510,7 @@ int main(int argc, char* argv[]) {
     const auto patch_sysmmc = ini_load_or_write_default("options", "patch_sysmmc", 1, ini_path);
     const auto patch_emummc = ini_load_or_write_default("options", "patch_emummc", 1, ini_path);
     const auto enable_logging = ini_load_or_write_default("options", "enable_logging", 1, ini_path);
+    VERSION_SKIP = ini_load_or_write_default("options", "version_skip", 1, ini_path);
     const auto emummc = is_emummc();
     bool enable_patching = true;
 
@@ -448,11 +524,17 @@ int main(int argc, char* argv[]) {
         enable_patching = false;
     }
 
+    // speedtest
+    const auto ticks_start = armGetSystemTick();
+
     if (enable_patching) {
         for (auto& patch : patches) {
             apply_patch(patch);
         }
     }
+
+    const auto ticks_end = armGetSystemTick();
+    const auto diff_ns = armTicksToNs(ticks_end) - armTicksToNs(ticks_start);
 
     if (enable_logging) {
         for (auto& patch : patches) {
@@ -463,6 +545,41 @@ int main(int argc, char* argv[]) {
                 ini_puts(patch.name, p.patch_name, patch_result_to_str(p.result), log_path);
             }
         }
+
+        // fw of the system
+        char fw_version[12]{};
+        // atmosphere version
+        char ams_version[12]{};
+        // lowest fw supported by atmosphere
+        char ams_target_version[12]{};
+        // ???
+        char ams_keygen[3]{};
+        // git commit hash
+        char ams_hash[9]{};
+        // how long it took to patch
+        char patch_time[20]{};
+
+        version_to_str(fw_version, FW_VERSION);
+        version_to_str(ams_version, AMS_VERSION);
+        version_to_str(ams_target_version, AMS_TARGET_VERSION);
+        keygen_to_str(ams_keygen, AMS_KEYGEN);
+        hash_to_str(ams_hash, AMS_HASH >> 32);
+        ms_2_str(patch_time, diff_ns/1000ULL/1000ULL);
+
+        // defined in the Makefile
+        #define DATE (DATE_DAY "." DATE_MONTH "." DATE_YEAR " " DATE_HOUR ":" DATE_MIN ":" DATE_SEC)
+
+        ini_puts("stats", "version", VERSION_WITH_HASH, log_path);
+        ini_puts("stats", "build_date", DATE, log_path);
+        ini_puts("stats", "fw_version", fw_version, log_path);
+        ini_puts("stats", "ams_version", ams_version, log_path);
+        ini_puts("stats", "ams_target_version", ams_target_version, log_path);
+        ini_puts("stats", "ams_keygen", ams_keygen, log_path);
+        ini_puts("stats", "ams_hash", ams_hash, log_path);
+        ini_putl("stats", "is_emummc", emummc, log_path);
+        ini_putl("stats", "heap_size", INNER_HEAP_SIZE, log_path);
+        ini_putl("stats", "buffer_size", READ_BUFFER_SIZE, log_path);
+        ini_puts("stats", "patch_time", patch_time, log_path);
     }
 
     // note: sysmod exits here.
@@ -511,9 +628,16 @@ void __appInit(void) {
     // get ams version
     if (R_SUCCEEDED(rc = splInitialize())) {
         u64 v{};
+        u64 hash{};
         if (R_SUCCEEDED(rc = splGetConfig((SplConfigItem)65000, &v))) {
-            AMS_VERSION = (v >> 16) & 0xFFFFFF;
+            AMS_VERSION = (v >> 40) & 0xFFFFFF;
+            AMS_KEYGEN = (v >> 32) & 0xFF;
+            AMS_TARGET_VERSION = v & 0xFFFFFF;
         }
+        if (R_SUCCEEDED(rc = splGetConfig((SplConfigItem)65003, &hash))) {
+            AMS_HASH = hash;
+        }
+
         splExit();
     }
 
