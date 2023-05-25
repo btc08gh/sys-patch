@@ -6,15 +6,31 @@ A script-like system module that patches fs, es and ldr on boot.
 
 ## Config
 
-sys-patch features a *very* simple config, only 2 options so far and they both do the same thing :p
+sys-patch features a simple config. This can be manually editied or updated using the overlay.
 
-this config file can be found in `/config/sys-patch/config.ini`, if the file does not exist, the file will be created when sys-patch is run.
+the config file can be found in `/config/sys-patch/config.ini`, if the file does not exist, the file will be created when sys-patch is run.
 
 ```ini
 [options]
 patch_sysmmc=1 ; 1=(default) patch sysmmc, 0=don't patch sysmmc
 patch_emummc=1 ; 1=(default) patch emummc, 0=don't patch emummc
+logging=1      ; 1=(default) output /config/sys-patch/log.inim 0=no log
 ```
+
+---
+
+## Overlay
+
+the overlay can be used to change the config options and to see what patches are applied (if any).
+
+- Unpatched means the patch wasn't applied (likely not found).
+- Patched (green) means it was patched by sys-patch.
+- Patched (yellow) means it was already patched, likely by sigpatches or a custom atmosphere build.
+
+<p float="left">
+  <img src="https://i.imgur.com/IlTkkYM.jpg" width="400" />
+  <img src="https://i.imgur.com/T4K5u5f.jpg" width="400" />
+</p>
 
 ---
 
@@ -24,7 +40,7 @@ patch_emummc=1 ; 1=(default) patch emummc, 0=don't patch emummc
 - install devkitpro
 
 ```sh
-git clone https://github.com/ITotalJustice/sys-patch.git
+git clone --recurse-submodules https://github.com/ITotalJustice/sys-patch.git
 cd sys-patch
 make
 ```
@@ -77,7 +93,6 @@ This repo is mainly a proof of concept. I would love for someone to build upon t
 
 here are a few ideas that i have:
 - option to load new patterns from file
-- make this into a service / overlay
 - make homebrew frontend that can update this sysmod, apply patches, all without having to reboot
 
 ---
@@ -97,3 +112,4 @@ software is built on the shoulders of giants. this tool wouldn't be possible wth
 - Switchbrew (libnx, switch-examples)
 - DevkitPro (toolchain)
 - [minIni](https://github.com/compuphase/minIni)
+- [libtesla](https://github.com/WerWolv/libtesla)

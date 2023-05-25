@@ -9,6 +9,8 @@ jobs:
     steps:
     - name: Checkout 🛎️
       uses: actions/checkout@master
+      with:
+        submodules: recursive
 
     - name: Build
       run: make dist -j2

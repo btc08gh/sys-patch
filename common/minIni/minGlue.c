@@ -46,7 +46,6 @@ bool ini_openrewrite(const char* filename, struct NxFile* nxfile) {
 
 bool ini_close(struct NxFile* nxfile) {
     fsFileClose(&nxfile->file);
-    fsFsCommit(&nxfile->system);
     fsFsClose(&nxfile->system);
     return true;
 }

@@ -1,6 +1,6 @@
-.vscode
 build
 Firmware
+firmware
 420000000000000B
 *.txt
 *.elf
@@ -8,5 +8,9 @@ Firmware
 *.nso
 *.nsp
 *.zip
+*.nacp
+*.ovl
+*.nca
 out
 ignoreme
+.vscode/settings.json

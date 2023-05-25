@@ -1,0 +1,4 @@
+[submodule "overlay/libtesla"]
+	path = overlay/libtesla
+	url = https://github.com/ITotalJustice/libtesla.git
+	branch = tj
