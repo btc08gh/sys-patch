@@ -29,8 +29,10 @@ the overlay can be used to change the config options and to see what patches are
 - Patched (yellow) means it was already patched, likely by sigpatches or a custom atmosphere build.
 
 <p float="left">
-  <img src="https://i.imgur.com/IlTkkYM.jpg" width="400" />
-  <img src="https://i.imgur.com/T4K5u5f.jpg" width="400" />
+  <img src="https://i.imgur.com/yDhTdI6.jpg" width="400" />
+  <img src="https://i.imgur.com/G6U9wGa.jpg" width="400" />
+  <img src="https://i.imgur.com/cSXUIWS.jpg" width="400" />
+  <img src="https://i.imgur.com/XNLWLqL.jpg" width="400" />
 </p>
 
 ---
@@ -45,6 +47,8 @@ git clone --recurse-submodules https://github.com/ITotalJustice/sys-patch.git
 cd sys-patch
 make
 ```
+
+the output of `out/` can be copied to your sd card. for the sysmodule to take effect, rebot your switch, or, use [sysmodules overlay](https://github.com/WerWolv/ovl-sysmodules/tree/master/source)  to start it.
 
 ---
 
@@ -88,16 +92,6 @@ Also, if you forget to update your patches when you update fw / atmosphere, this
 
 ---
 
-## My request
-
-This repo is mainly a proof of concept. I would love for someone to build upon this, make it into something bigger / better.
-
-here are a few ideas that i have:
-- option to load new patterns from file
-- make homebrew frontend that can update this sysmod, apply patches, all without having to reboot
-
----
-
 ## Credits / Thanks
 
 software is built on the shoulders of giants. this tool wouldn't be possible wthout these people:
@@ -107,9 +101,6 @@ software is built on the shoulders of giants. this tool wouldn't be possible wth
 - BornToHonk (farni)
 - TeJay
 - ArchBox
-- Shchmue (lockpick)
-- Jakibaki (sys-netcheat)
-- SciresM (Atmosphere, hactool, etc)
 - Switchbrew (libnx, switch-examples)
 - DevkitPro (toolchain)
 - [minIni](https://github.com/compuphase/minIni)
