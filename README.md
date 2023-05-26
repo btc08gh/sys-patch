@@ -1,14 +1,14 @@
 # sys-patch
 
-A script-like system module that patches fs, es and ldr on boot.
+A script-like system module that patches **fs**, **es**, **ldr** and **nifm** on boot.
 
 ---
 
 ## Config
 
-sys-patch features a simple config. This can be manually editied or updated using the overlay.
+**sys-patch** features a simple config. This can be manually edited or updated using the overlay.
 
-the config file can be found in `/config/sys-patch/config.ini`, if the file does not exist, the file will be created when sys-patch is run.
+The configuration file can be found in `/config/sys-patch/config.ini`. The file is generated once the module is ran for the first time.
 
 ```ini
 [options]
@@ -22,11 +22,11 @@ version_skip=1 ; 1=(default) skips out of date patterns, 0=search all patterns
 
 ## Overlay
 
-the overlay can be used to change the config options and to see what patches are applied (if any).
+The overlay can be used to change the config options and to see what patches are applied.
 
 - Unpatched means the patch wasn't applied (likely not found).
 - Patched (green) means it was patched by sys-patch.
-- Patched (yellow) means it was already patched, likely by sigpatches or a custom atmosphere build.
+- Patched (yellow) means it was already patched, likely by sigpatches or a custom Atmosphere build.
 
 <p float="left">
   <img src="https://i.imgur.com/yDhTdI6.jpg" width="400" />
@@ -40,63 +40,59 @@ the overlay can be used to change the config options and to see what patches are
 ## Building
 
 ### prerequisites
-- install devkitpro
+- Install [devkitpro](https://devkitpro.org/wiki/Getting_Started)
+- Run the following:
+  ```sh
+  git clone --recurse-submodules https://github.com/ITotalJustice/sys-patch.git
+  cd ./sys-patch
+  make
+  ```
 
-```sh
-git clone --recurse-submodules https://github.com/ITotalJustice/sys-patch.git
-cd sys-patch
-make
-```
-
-the output of `out/` can be copied to your sd card. for the sysmodule to take effect, rebot your switch, or, use [sysmodules overlay](https://github.com/WerWolv/ovl-sysmodules/tree/master/source)  to start it.
+The output of `out/` can be copied to your SD card.
+To activate the sys-module, reboot your switch, or, use [sysmodules overlay](https://github.com/WerWolv/ovl-sysmodules/releases/latest) with the accompanying overlay to activate it.
 
 ---
 
 ## What is being patched?
 
-Here's a quick run down of what's being patched
+Here's a quick run down of what's being patched:
 
-- fs
-- es
-- ldr
+- **fs**
+- **es**
+- **ldr**
+- **nifm**
 
-fs and es need new patches after every new fw version.
+**fs** and **es** need new patches after every new firmware version.
+**ldr** needs new patches after every new [Atmosphere](https://github.com/Atmosphere-NX/Atmosphere/) release.
+**nifm** ctest patch allows the device to connect to a network without needing to make a connection to a server.
 
-ldr on the other hand needs new patches after every new atmosphere release. this is due to ldr service being reimplemented by atmosphere. in fw 10.0.0, a new check was added to ofw which we needed to patch out. As atmosphere closely follows what ofw does, it also added this check. This is why a new patch is needed per atmosphere update.
-
----
-
-## How does it work?
-
-it uses a collection of patterns to find the piece of code to patch. alternatively, it could just use offsets, however this would mean this tool would have to be updated after every new fw update, that's not ideal.
-
-the patches are applied at boot, then, the sysmod stops running. the memory footpint of the sysmod is very very small, only using 16kib in total. the size of the binary itself is only ~50kib! this doesnt really mean much, but im pretty proud of it :)
+The patches are applied on boot. Once done, the sys-module stops running.
+The memory footprint *(16kib)* and the binary size *(~50kib)* are both very small.
 
 ---
 
-## Does this mean i should stop downloading / using sigpatches?
+## FAQ:
 
-No, i would personally recommend continuing to use sigpatches. Reason being is that should this tool ever break, i likely wont be quick to fix it.
+### If I am using sigpatches already, is there any point in using this?
 
----
+Yes, in 3 situations.
 
-## If i am using sigpatches already, is there any point in using this as well?
+1. A new **ldr** patch needs to be created after every Atmosphere update. Sometimes, a new silent Atmosphere update is released. This tool will always patch **ldr** without having to update patches.
 
-Yes, in 2 niche cases.
+2. Building Atmosphere from src will require you to generate a new **ldr** patch for that custom built Atmosphere. This is easy enough due to the public scripts / tools that exist out there, however this will always be able to patch **ldr**.
 
-1. A new ldr patch needs to be created after every atmosphere update. Sometimes, a new silent atmosphere update is released. This tool will always patch ldr without having to update patches.
+3.  If you forget to update your patches when you update your firmware / Atmosphere, this sys-module should be able to patch everything. So it can be used as a fall back.
 
-2. Building atmosphere from src will require you to generate a new ldr patch for that custom built atmosphere. This is easy enough due to the public scripts / tools that exist out there, however this will always be able to
+### Does this mean that I should stop downloading / using sigpatches?
 
-Also, if you forget to update your patches when you update fw / atmosphere, this sysmod should be able to patch everything just fine! so it's nice to have as a fallback.
+No, I would personally recommend continuing to use sigpatches. Reason being is that should this tool ever break, i likely wont be quick to fix it.
 
 ---
 
 ## Credits / Thanks
 
-software is built on the shoulders of giants. this tool wouldn't be possible wthout these people:
+Software is built on the shoulders of giants. This tool wouldn't be possible without these people:
 
-- DarkMatterCore
 - MrDude
 - BornToHonk (farni)
 - TeJay
