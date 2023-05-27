@@ -176,14 +176,14 @@ constexpr auto bne_cond(u32 inst) -> bool {
 }
 
 constexpr auto ctest_cond(u32 inst) -> bool {
-    return true; // we overwrite the function so we don't care to check
+    return std::byteswap(0xF50301AA) == inst; // mov x21, x1
 }
 
 // to view patches, use https://armconverter.com/?lock=arm64
 constexpr PatchData ret0_patch_data{ "0xE0031F2A" };
 constexpr PatchData nop_patch_data{ "0x1F2003D5" };
 constexpr PatchData mov0_patch_data{ "0xE0031FAA" };
-constexpr PatchData ctest_patch_data{ "00309AD2001EA1F2610100D4E0031FAAC0035FD6" };
+constexpr PatchData ctest_patch_data{ "0x00309AD2001EA1F2610100D4E0031FAAC0035FD6" };
 
 constexpr auto ret0_patch(u32 inst) -> PatchData { return ret0_patch_data; }
 constexpr auto nop_patch(u32 inst) -> PatchData { return nop_patch_data; }
@@ -248,7 +248,7 @@ constinit Patterns es_patterns[] = {
 };
 
 constinit Patterns nifm_patterns[] = {
-    { "ctest", "................F50301AAF40300AA....F30314AAE00314AA9F0201397F8E04F8", 0, 0, ctest_cond, ctest_patch, ctest_applied, true },
+    { "ctest", "....................F40300AA....F30314AAE00314AA9F0201397F8E04F8", 16, -16, ctest_cond, ctest_patch, ctest_applied, true },
 };
 
 // NOTE: add system titles that you want to be patched to this table.
@@ -338,7 +338,7 @@ void patcher(Handle handle, std::span<const u8> data, u64 addr, std::span<Patter
                     }
                     // move onto next pattern
                     break;
-                } else if (p.applied(data.data() + inst_offset, inst)) {
+                } else if (p.applied(data.data() + inst_offset + p.patch_offset, inst)) {
                     // patch already applied by sigpatches
                     p.result = PatchResult::PATCHED_FILE;
                     break;

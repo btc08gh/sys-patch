@@ -101,3 +101,4 @@ Software is built on the shoulders of giants. This tool wouldn't be possible wit
 - DevkitPro (toolchain)
 - [minIni](https://github.com/compuphase/minIni)
 - [libtesla](https://github.com/WerWolv/libtesla)
+- [Shoutout to the best switch cfw setup guide](https://rentry.org/SwitchHackingIsEasy)
