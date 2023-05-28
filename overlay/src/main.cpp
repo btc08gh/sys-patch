@@ -86,7 +86,7 @@ public:
 
     ConfigEntry config_patch_sysmmc{"options", "patch_sysmmc", true};
     ConfigEntry config_patch_emummc{"options", "patch_emummc", true};
-    ConfigEntry config_logging{"options", "patch_logging", true};
+    ConfigEntry config_logging{"options", "enable_logging", true};
     ConfigEntry config_version_skip{"options", "version_skip", true};
 };
 

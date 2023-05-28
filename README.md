@@ -12,10 +12,10 @@ The configuration file can be found in `/config/sys-patch/config.ini`. The file 
 
 ```ini
 [options]
-patch_sysmmc=1 ; 1=(default) patch sysmmc, 0=don't patch sysmmc
-patch_emummc=1 ; 1=(default) patch emummc, 0=don't patch emummc
-logging=1      ; 1=(default) output /config/sys-patch/log.ini 0=no log
-version_skip=1 ; 1=(default) skips out of date patterns, 0=search all patterns
+patch_sysmmc=1   ; 1=(default) patch sysmmc, 0=don't patch sysmmc
+patch_emummc=1   ; 1=(default) patch emummc, 0=don't patch emummc
+enable_logging=1 ; 1=(default) output /config/sys-patch/log.ini 0=no log
+version_skip=1   ; 1=(default) skips out of date patterns, 0=search all patterns
 ```
 
 ---

@@ -437,7 +437,7 @@ auto ini_load_or_write_default(const char* section, const char* key, long _defau
         ini_putl(section, key, _default, path);
         return _default;
     } else {
-        return ini_getl(section, key, _default, path);
+        return ini_getbool(section, key, _default, path);
     }
 }
 
