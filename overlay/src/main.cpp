@@ -117,6 +117,7 @@ public:
         list->addItem(config_es4.create_list_item("es4"));
         list->addItem(config_es5.create_list_item("es5"));
         list->addItem(config_es6.create_list_item("es6"));
+        list->addItem(config_es7.create_list_item("es7"));
 
         list->addItem(new tsl::elm::CategoryHeader("NIFM - 010000000000000F"));
         list->addItem(config_ctest.create_list_item("ctest"));
@@ -139,6 +140,7 @@ public:
     ConfigEntry config_es4{"es", "es4", true};
     ConfigEntry config_es5{"es", "es5", true};
     ConfigEntry config_es6{"es", "es6", true};
+    ConfigEntry config_es7{"es", "es7", true};
     ConfigEntry config_ctest{"nifm", "ctest", false};
 };
 

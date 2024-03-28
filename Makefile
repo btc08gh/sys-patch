@@ -2,7 +2,7 @@ MAKEFILES	:=	sysmod overlay
 TARGETS		:= $(foreach dir,$(MAKEFILES),$(CURDIR)/$(dir))
 
 # the below was taken from atmosphere + switch-examples makefile
-export VERSION := 1.5.0
+export VERSION := 1.5.1
 export GIT_BRANCH := $(shell git symbolic-ref --short HEAD)
 
 ifeq ($(strip $(shell git status --porcelain 2>/dev/null)),)
