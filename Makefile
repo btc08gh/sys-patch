@@ -3,7 +3,12 @@ TARGETS		:= $(foreach dir,$(MAKEFILES),$(CURDIR)/$(dir))
 
 # the below was taken from atmosphere + switch-examples makefile
 export VERSION := 1.5.1
+
+ifneq ($(strip $(shell git symbolic-ref --short HEAD 2>/dev/null)),)
 export GIT_BRANCH := $(shell git symbolic-ref --short HEAD)
+else
+export GIT_BRANCH := notbranch
+endif
 
 ifeq ($(strip $(shell git status --porcelain 2>/dev/null)),)
 export GIT_REVISION := $(GIT_BRANCH)-$(shell git rev-parse --short HEAD)
