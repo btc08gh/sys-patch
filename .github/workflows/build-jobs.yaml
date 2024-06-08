@@ -7,7 +7,7 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-latest
-    container: ghcr.io/${{ github.repository_owner }}/devkita64-atmosphere:latest
+    container: ghcr.io/pgalonza/devkita64-atmosphere:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
