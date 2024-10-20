@@ -104,8 +104,8 @@ public:
         list->addItem(config_noncasigchk_old.create_list_item("noncasigchk_old"));
         list->addItem(config_noncasigchk_new.create_list_item("noncasigchk_new"));
         list->addItem(config_noncasigchk_new2.create_list_item("noncasigchk_new2"));
-        list->addItem(config_nocntchk_old.create_list_item("nocntchk_old"));
-        list->addItem(config_nocntchk_new.create_list_item("nocntchk_new"));
+        list->addItem(config_nocntchk.create_list_item("nocntchk"));
+        list->addItem(config_nocntchk_FW19.create_list_item("nocntchk_FW19"));
 
         list->addItem(new tsl::elm::CategoryHeader("LDR - 0100000000000001"));
         list->addItem(config_noacidsigchk.create_list_item("noacidsigchk"));
@@ -117,7 +117,8 @@ public:
         list->addItem(config_es4.create_list_item("es4"));
         list->addItem(config_es5.create_list_item("es5"));
         list->addItem(config_es6.create_list_item("es6"));
-        list->addItem(config_es7.create_list_item("es7"));
+        list->addItem(config_es7fw18.create_list_item("es7_FW18"));
+        list->addItem(config_es7fw1819.create_list_item("es7_FW18-19"));
 
         list->addItem(new tsl::elm::CategoryHeader("NIFM - 010000000000000F"));
         list->addItem(config_ctest.create_list_item("ctest"));
@@ -131,8 +132,8 @@ public:
     ConfigEntry config_noncasigchk_old{"fs", "noncasigchk_old", true};
     ConfigEntry config_noncasigchk_new{"fs", "noncasigchk_new", true};
     ConfigEntry config_noncasigchk_new2{"fs", "noncasigchk_new2", true};
-    ConfigEntry config_nocntchk_old{"fs", "nocntchk_old", true};
-    ConfigEntry config_nocntchk_new{"fs", "nocntchk_new", true};
+    ConfigEntry config_nocntchk{"fs", "nocntchk", true};
+    ConfigEntry config_nocntchk_FW19{"fs", "nocntchk_FW19", true};
     ConfigEntry config_noacidsigchk{"ldr", "noacidsigchk", true};
     ConfigEntry config_es1{"es", "es1", true};
     ConfigEntry config_es2{"es", "es2", true};
@@ -140,7 +141,8 @@ public:
     ConfigEntry config_es4{"es", "es4", true};
     ConfigEntry config_es5{"es", "es5", true};
     ConfigEntry config_es6{"es", "es6", true};
-    ConfigEntry config_es7{"es", "es7", true};
+    ConfigEntry config_es7fw18{"es", "es7_FW18", true};
+    ConfigEntry config_es7fw1819{"es", "es7_FW18-19", true};
     ConfigEntry config_ctest{"nifm", "ctest", false};
 };
 
