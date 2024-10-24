@@ -80,7 +80,7 @@ struct PatchData {
         }
     }
 
-    auto cmp(const void* _data) -> bool {
+    constexpr auto cmp(const void* _data) -> bool {
         return !std::memcmp(data, _data, size);
     }
 
@@ -241,7 +241,6 @@ constinit Patterns fs_patterns[] = {
     //new good patch tested on fw 19  (thnks mrdude)
     { "nocntchk_FW19", "0x1C0012.050071..0054..00.60", -9, 0, bl_cond, ret0_patch, ret0_applied, true, MAKEHOSVERSION(19,0,0) },
     //
-
 };
 
 constinit Patterns ldr_patterns[] = {
