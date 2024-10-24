@@ -254,10 +254,8 @@ constinit Patterns es_patterns[] = {
     { "es3", "0xF3031FAA02000014", -4, 0, bne_cond, nop_patch, nop_applied, true, FW_VER_ANY, MAKEHOSVERSION(10,2,0) },
     { "es4", "0xC0FDFF35A8C35838", -4, 0, mov_cond, nop_patch, nop_applied, true, MAKEHOSVERSION(11,0,0), MAKEHOSVERSION(13,2,1) },
     { "es5", "0xE023009145EEFF97", -4, 0, cbz_cond, b_patch, b_applied, true, MAKEHOSVERSION(11,0,0), MAKEHOSVERSION(13,2,1) },
-    { "es6", "0x.6300...0094A0..D1..FF97", 16, 0, mov2_cond, mov0_patch, mov0_applied, true, MAKEHOSVERSION(14,0,0), MAKEHOSVERSION(17,0,1) },
-    //new good patch tested on fw 18-19
-    { "es7_FW18", "0x.6F00...0094A0..D1..FF97", 16, 0, mov2_cond, mov0_patch, mov0_applied, true, MAKEHOSVERSION(18,0,0) },
-    { "es7_FW18-19", "0xFF97..132A...A9........FF.0491C0035FD6", 2, 0, mov2_cond, mov0_patch, mov0_applied, true, MAKEHOSVERSION(18,0,0), MAKEHOSVERSION(19,0,0) },
+    { "es6", "0x..00...0094A0..D1..FF97", 16, 0, mov2_cond, mov0_patch, mov0_applied, true, MAKEHOSVERSION(14,0,0), MAKEHOSVERSION(18,1,0) },
+    { "es7", "0xFF97..132A...A9........FF.0491C0035FD6", 2, 0, mov2_cond, mov0_patch, mov0_applied, true, MAKEHOSVERSION(18,0,0), MAKEHOSVERSION(19,0,0) },
 };
 
 constinit Patterns nifm_patterns[] = {
