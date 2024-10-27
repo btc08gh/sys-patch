@@ -8,6 +8,8 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     container: ghcr.io/pgalonza/devkita64-atmosphere:latest
+    #or you can use a generic one
+    #container: devkitpro/devkita64:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
