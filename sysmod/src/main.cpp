@@ -141,7 +141,8 @@ constexpr auto subr_cond(u32 inst) -> bool {
 }
 
 constexpr auto bl_cond(u32 inst) -> bool {
-    return ((inst >> 26) & 0x3F) == 0x25;
+    const auto type = inst >> 24;
+    return type == 0x25 || type == 0x94;
 }
 
 constexpr auto tbz_cond(u32 inst) -> bool {
@@ -169,6 +170,10 @@ constexpr auto mov2_cond(u32 inst) -> bool {
     }
 }
 
+constexpr auto mov_cond3(u32 inst) -> bool {
+    return (inst >> 24) == 0xD2; // mov x10, #0x3
+}
+
 constexpr auto and_cond(u32 inst) -> bool {
     return ((inst >> 24) & 0x1F) == 0x0A;
 }
@@ -183,6 +188,14 @@ constexpr auto bne_cond(u32 inst) -> bool {
     return type == 0x54 || cond == 0x0;
 }
 
+constexpr auto beq_cond(u32 inst) -> bool {
+    return (inst >> 24) == 0x54; // beq, 0x710011c94c
+}
+
+constexpr auto str_cond(u32 inst) -> bool {
+    return (inst >> 24) == 0xB9; // str, w8,[x19, #0x15c]
+}
+
 constexpr auto ctest_cond(u32 inst) -> bool {
     return std::byteswap(0xF50301AA) == inst; // mov x21, x1
 }
@@ -195,6 +208,8 @@ constexpr PatchData nop_patch_data{ "0x1F2003D5" };
 constexpr PatchData mov0_patch_data{ "0xE0031FAA" };
 //mov x2, xzr
 constexpr PatchData mov2_patch_data{ "0xE2031FAA" };
+constexpr PatchData ssl1_patch_data{ "0x0A" };
+constexpr PatchData ssl2_patch_data{ "0x08008052" };
 constexpr PatchData ctest_patch_data{ "0x00309AD2001EA1F2610100D4E0031FAAC0035FD6" };
 
 constexpr auto ret0_patch(u32 inst) -> PatchData { return ret0_patch_data; }
@@ -203,6 +218,8 @@ constexpr auto nop_patch(u32 inst) -> PatchData { return nop_patch_data; }
 constexpr auto subs_patch(u32 inst) -> PatchData { return subi_cond(inst) ? (u8)0x1 : (u8)0x0; }
 constexpr auto mov0_patch(u32 inst) -> PatchData { return mov0_patch_data; }
 constexpr auto mov2_patch(u32 inst) -> PatchData { return mov2_patch_data; }
+constexpr auto ssl1_patch(u32 inst) -> PatchData { return ssl1_patch_data; }
+constexpr auto ssl2_patch(u32 inst) -> PatchData { return ssl2_patch_data; }
 constexpr auto ctest_patch(u32 inst) -> PatchData { return ctest_patch_data; }
 
 constexpr auto b_patch(u32 inst) -> PatchData {
@@ -243,6 +260,14 @@ constexpr auto mov2_applied(const u8* data, u32 inst) -> bool {
     return mov2_patch(inst).cmp(data);
 }
 
+constexpr auto ssl1_applied(const u8* data, u32 inst) -> bool {
+    return ssl1_patch(inst).cmp(data);
+}
+
+constexpr auto ssl2_applied(const u8* data, u32 inst) -> bool {
+    return ssl2_patch(inst).cmp(data);
+}
+
 constexpr auto ctest_applied(const u8* data, u32 inst) -> bool {
     return ctest_patch(inst).cmp(data);
 }
@@ -250,15 +275,14 @@ constexpr auto ctest_applied(const u8* data, u32 inst) -> bool {
 constinit Patterns fs_patterns[] = {
     { "noacidsigchk1", "0xC8FE4739", -24, 0, bl_cond, ret0_patch, ret0_applied, true, FW_VER_ANY, MAKEHOSVERSION(9,2,0) },
     { "noacidsigchk2", "0x0210911F000072", -5, 0, bl_cond, ret0_patch, ret0_applied, true, FW_VER_ANY, MAKEHOSVERSION(9,2,0) },
-    { "noncasigchk_old", "0x1E42B9", -5, 0, tbz_cond, nop_patch, nop_applied, true, MAKEHOSVERSION(10,0,0), MAKEHOSVERSION(14,2,1) },
-    { "noncasigchk_new", "0x3E4479", -5, 0, tbz_cond, nop_patch, nop_applied, true, MAKEHOSVERSION(15,0,0), MAKEHOSVERSION(16,1,0) },
-    { "noncasigchk_new2", "0x258052", -5, 0, tbz_cond, nop_patch, nop_applied, true, MAKEHOSVERSION(17,0,0), FW_VER_ANY },
-    { "nocntchk", "0x081C00121F050071..0054", -4, 0, bl_cond, ret0_patch, ret0_applied, true, MAKEHOSVERSION(10,0,0), MAKEHOSVERSION(18,1,0) },
-    { "nocntchk2", "0x091C00123F05007161010054", -8, 0, bl_cond, ret0_patch, ret0_applied, true, MAKEHOSVERSION(19,0,0), FW_VER_ANY },
+    { "noncasigchk_old", "0x0036.......71..0054..4839", -2, 0, tbz_cond, nop_patch, nop_applied, true, MAKEHOSVERSION(10,0,0), MAKEHOSVERSION(16,1,0) },
+    { "noncasigchk_new", "0x.94..0036.258052", 2, 0, tbz_cond, nop_patch, nop_applied, true, MAKEHOSVERSION(17,0,0), FW_VER_ANY }, // 17.0.0 - 19.0.0+
+    { "nocntchk", "0x40f9...9408.0012.050071", 2, 0, bl_cond, ret0_patch, ret0_applied, true, MAKEHOSVERSION(10,0,0), MAKEHOSVERSION(18,1,0) },
+    { "nocntchk2", "0x40f9...94..40b9..0012", 2, 0, bl_cond, ret0_patch, ret0_applied, true, MAKEHOSVERSION(19,0,0), FW_VER_ANY },
 };
 
 constinit Patterns ldr_patterns[] = {
-    { "noacidsigchk", "0xFD7B.A8C0035FD6", 16, 2, subs_cond, subs_patch, subs_applied, true, FW_VER_ANY  },
+    { "noacidsigchk", "0xFD7B.A8C0035FD6", 16, 2, subs_cond, subs_patch, subs_applied, true, FW_VER_ANY },
 };
 
 constinit Patterns es_patterns[] = {
@@ -273,7 +297,12 @@ constinit Patterns nifm_patterns[] = {
 
 constinit Patterns nim_patterns[] = {
     { "nim", "0x.0F00351F2003D5", 8, 0, adr_cond, mov2_patch, mov2_applied, true, MAKEHOSVERSION(17,0,0), FW_VER_ANY },
-   // { "nim2", "0x600F00351F2003D5", 8, 0, adr_cond, mov2_patch, mov2_applied, true, MAKEHOSVERSION(19,0,0), FW_VER_ANY },
+};
+
+constinit Patterns ssl_patterns[] = {
+    { "disablecaverification1", "0x6A0080D2", 0, 0, mov_cond3, ssl1_patch, ssl1_applied, false, FW_VER_ANY },
+    { "disablecaverification2", "0x2409437AA0000054", 4, 0, beq_cond, ret1_patch, ret1_applied, false, FW_VER_ANY },
+    { "disablecaverification3", "0x88160012", 4, 0, str_cond, ssl2_patch, ssl2_applied, false, FW_VER_ANY },
 };
 
 // NOTE: add system titles that you want to be patched to this table.
@@ -286,6 +315,7 @@ constinit PatchEntry patches[] = {
     { "es", 0x0100000000000033, es_patterns, MAKEHOSVERSION(2,0,0) },
     { "nifm", 0x010000000000000F, nifm_patterns },
     { "nim", 0x0100000000000025, nim_patterns },
+    { "ssl", 0x0100000000000024, ssl_patterns },
 };
 
 struct EmummcPaths {
